@@ -1,4 +1,5 @@
 use rocket::serde::{Serialize, Deserialize};
+use rocket_db_pools::sqlx::*;
 
 pub(crate) type Id = usize;
 
@@ -7,18 +8,18 @@ pub(crate) type Id = usize;
 pub struct Todo {
     pub id: Id,
     pub content: String,
-    pub done: bool
+    pub done: bool,
+}
+
+impl Todo {
+    pub(crate) fn new(id: Id, content: String, done: bool) -> Todo {
+        Todo { id, content, done }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialOrd, PartialEq, Clone)]
 #[serde(crate = "rocket::serde")]
 pub struct CreateUpdateTodo<'r> {
     pub content: &'r str,
-    pub done: bool
-}
-
-impl Todo {
-    pub(crate) fn new(id: Id, content: String, done: bool) -> Todo {
-        Todo {id, content, done}
-    }
+    pub done: bool,
 }

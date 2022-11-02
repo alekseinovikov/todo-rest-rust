@@ -3,59 +3,46 @@ extern crate rocket;
 
 use rocket::serde::json::Json;
 use rocket::State;
-use crate::service::entity::Todo;
+
+use crate::service::entity::{CreateUpdateTodo, Todo};
 use crate::service::TodoService;
 
 mod service;
-
-use rocket::{Catcher, Request};
-use rocket::response::{Result, Responder};
-use rocket::response::status::Custom;
-use rocket::http::Status;
-use rocket::serde::Serialize;
-
-fn handle_404<'r>(req: &'r Request) -> Result<'r> {
-    let res = Custom(Status::NotFound, format!("404: {}", req.uri()));
-    res.respond_to(req)
-}
-
+mod errors;
 
 #[get("/")]
-fn list(service: &State<TodoService>) -> Json<Vec<&Todo>> {
-    Json(service.list())
+async fn list(service: &State<TodoService>) -> Json<Vec<Todo>> {
+    Json(service.list().await)
 }
 
 #[get("/<id>")]
-fn get(id: usize, service: &State<TodoService>) -> Option<Json<&Todo>> {
-    service.get_by_id(id).map(|x| Json(x))
+async fn get(id: usize, service: &State<TodoService>) -> Option<Json<Todo>> {
+    service.get_by_id(id).await
+        .map(|x| Json(x))
 }
 
-#[derive(Serialize, Debug, PartialOrd, PartialEq, Clone)]
-#[serde(crate = "rocket::serde")]
-struct Error {
-    message: &'static str,
-    error_code: u16,
+#[put("/<id>", data="<todo>")]
+async fn update<'r>(id: usize, todo: Json<CreateUpdateTodo<'r>>, service: &State<TodoService>) -> Result<Json<Todo>, &'static str> {
+    service.update(id, todo.0).await
+        .map(|todo| Json(todo))
 }
 
-const not_found_error: &'static Error = &Error {
-    message: "Idi nahuy",
-    error_code: 404,
-};
-
-const not_found_json: &'static Json<&Error> = &Json(not_found_error);
-
-#[catch(404)]
-fn not_found(req: &Request) -> Json<&'static Error> {
-    Json(not_found_error)
+#[post("/", data="<todo>")]
+async fn create<'r>(todo: Json<CreateUpdateTodo<'r>>, service: &State<TodoService>) -> Json<Todo> {
+    Json(service.create(todo.0).await)
 }
 
 #[launch]
 fn rocket() -> _ {
     rocket::build()
-        .register("/", catchers![not_found])
-        .manage(TodoService::new())
+        .register("/", catchers![
+            errors::not_found,
+            errors::internal_server_error
+        ]).manage(TodoService::new())
         .mount("/", routes![
             list,
-            get
+            get,
+            update,
+            create
         ])
 }

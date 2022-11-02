@@ -1,4 +1,4 @@
-use rocket::serde::{Serialize};
+use rocket::serde::{Serialize, Deserialize};
 
 pub(crate) type Id = usize;
 
@@ -7,6 +7,13 @@ pub(crate) type Id = usize;
 pub struct Todo {
     pub id: Id,
     pub content: String,
+    pub done: bool
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialOrd, PartialEq, Clone)]
+#[serde(crate = "rocket::serde")]
+pub struct CreateUpdateTodo<'r> {
+    pub content: &'r str,
     pub done: bool
 }
 

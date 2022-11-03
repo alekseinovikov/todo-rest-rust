@@ -1,2 +1,5 @@
+[default]
+secret_key = "6XrKhVEP3gFMqmfhUzDdSYDthOLU442TjSCnz7sPEYE="
+
 [default.databases.pg_todo]
 url = "postgres://postgres:postgres@localhost/todo"

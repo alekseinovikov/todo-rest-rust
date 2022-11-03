@@ -11,6 +11,7 @@ use crate::service::entity::*;
 
 mod service;
 mod errors;
+mod migrations;
 
 #[get("/")]
 async fn list(service: &State<TodoService>,
@@ -30,7 +31,7 @@ async fn get(id: usize,
         .map(|x| Json(x))
 }
 
-#[put("/<id>", data="<todo>")]
+#[put("/<id>", data = "<todo>")]
 async fn update<'r>(id: usize,
                     todo: Json<CreateUpdateTodo<'r>>,
                     service: &State<TodoService>,
@@ -41,7 +42,7 @@ async fn update<'r>(id: usize,
         .map(|todo| Json(todo))
 }
 
-#[post("/", data="<todo>")]
+#[post("/", data = "<todo>")]
 async fn create<'r>(todo: Json<CreateUpdateTodo<'r>>,
                     service: &State<TodoService>,
                     mut db: Connection<Todos>) -> Json<Todo> {
@@ -55,13 +56,16 @@ async fn create<'r>(todo: Json<CreateUpdateTodo<'r>>,
 struct Todos(sqlx::PgPool);
 
 #[launch]
-fn rocket() -> _ {
-    rocket::build()
+async fn rocket() -> _ {
+    let rocket = rocket::build();
+
+    migrations::migrate(&rocket).await;
+
+    rocket.attach(Todos::init())
         .register("/", catchers![
             errors::not_found,
             errors::internal_server_error
         ]).manage(TodoService::new())
-        .attach(Todos::init())
         .mount("/", routes![
             list,
             get,

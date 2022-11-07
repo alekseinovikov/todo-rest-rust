@@ -21,14 +21,14 @@ impl Repository {
     }
 
     pub(crate) async fn get_by_id(&self, id: Id, mut db: Connection<Todos>) -> Option<Todo> {
-        sqlx::query("SELECT id, content, done FROM todo")
+        sqlx::query_as("SELECT id, content, done FROM todo WHERE id = $1")
+            .bind(id as i64)
             .map(|row: PgRow| {
                 let id: i64 = row.try_get("id").unwrap();
                 let content = row.try_get("content").unwrap();
                 let done = row.try_get("done").unwrap();
                 Todo {id: id as usize, content, done}
-            }).fetch_one(&mut *db).await
-            .ok()
+            }).fetch_optional(&mut *db).await
     }
 
     pub(crate) async fn update<'r>(&self, id: Id, todo: CreateUpdateTodo<'r>, mut db: Connection<Todos>) -> Result<Todo, &'static str> {

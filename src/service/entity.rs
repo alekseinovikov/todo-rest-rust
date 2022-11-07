@@ -1,9 +1,9 @@
 use rocket::serde::{Serialize, Deserialize};
-use rocket_db_pools::sqlx::*;
 
 pub(crate) type Id = usize;
 
 #[derive(Serialize, Debug, PartialOrd, PartialEq, Clone)]
+#[derive(sqlx::FromRow)]
 #[serde(crate = "rocket::serde")]
 pub struct Todo {
     pub id: Id,

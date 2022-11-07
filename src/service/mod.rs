@@ -1,6 +1,6 @@
 use crate::service::entity::{CreateUpdateTodo, Id, Todo};
 use crate::service::repository::Repository;
-use rocket_db_pools::{Database, Connection};
+use rocket_db_pools::Connection;
 use crate::Todos;
 
 pub(crate) mod entity;
@@ -18,26 +18,26 @@ impl TodoService {
     }
 
     pub(crate) async fn list(&self,
-                             mut db: Connection<Todos>) -> Vec<Todo> {
+                             db: Connection<Todos>) -> Vec<Todo> {
         self.repository.list(db).await
     }
 
     pub(crate) async fn get_by_id(&self,
                                   id: Id,
-                                  mut db: Connection<Todos>) -> Option<Todo> {
+                                  db: Connection<Todos>) -> Option<Todo> {
         self.repository.get_by_id(id, db).await
     }
 
     pub(crate) async fn update<'r>(&self,
-                                   id: Id,
-                                   todo: CreateUpdateTodo<'r>,
-                                   mut db: Connection<Todos>) -> Result<Todo, &'static str> {
+                               id: Id,
+                               todo: CreateUpdateTodo<'r>,
+                               db: Connection<Todos>) -> Result<Todo, String> {
         self.repository.update(id, todo, db).await
     }
 
     pub(crate) async fn create(&self,
                                todo: CreateUpdateTodo<'_>,
-                               mut db: Connection<Todos>) -> Todo {
+                               db: Connection<Todos>) -> Todo {
         self.repository.create(todo, db).await
     }
 }

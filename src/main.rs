@@ -15,7 +15,7 @@ mod migrations;
 
 #[get("/")]
 async fn list(service: &State<TodoService>,
-              mut db: Connection<Todos>) -> Json<Vec<Todo>> {
+              db: Connection<Todos>) -> Json<Vec<Todo>> {
     Json(service
         .list(db)
         .await)
@@ -24,7 +24,7 @@ async fn list(service: &State<TodoService>,
 #[get("/<id>")]
 async fn get(id: usize,
              service: &State<TodoService>,
-             mut db: Connection<Todos>) -> Option<Json<Todo>> {
+             db: Connection<Todos>) -> Option<Json<Todo>> {
     service
         .get_by_id(id, db)
         .await
@@ -35,7 +35,7 @@ async fn get(id: usize,
 async fn update<'r>(id: usize,
                     todo: Json<CreateUpdateTodo<'r>>,
                     service: &State<TodoService>,
-                    mut db: Connection<Todos>) -> Result<Json<Todo>, &'static str> {
+                    db: Connection<Todos>) -> Result<Json<Todo>, String> {
     service
         .update(id, todo.0, db)
         .await
@@ -45,7 +45,7 @@ async fn update<'r>(id: usize,
 #[post("/", data = "<todo>")]
 async fn create<'r>(todo: Json<CreateUpdateTodo<'r>>,
                     service: &State<TodoService>,
-                    mut db: Connection<Todos>) -> Json<Todo> {
+                    db: Connection<Todos>) -> Json<Todo> {
     Json(service
         .create(todo.0, db)
         .await)

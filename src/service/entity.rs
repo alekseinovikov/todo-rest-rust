@@ -1,9 +1,12 @@
 use rocket::serde::{Serialize, Deserialize};
+use rocket_db_pools::sqlx;
+use rocket_db_pools::sqlx::postgres::PgRow;
+use rocket_db_pools::sqlx::{Error, Row};
+use sqlx::FromRow;
 
 pub(crate) type Id = usize;
 
 #[derive(Serialize, Debug, PartialOrd, PartialEq, Clone)]
-#[derive(sqlx::FromRow)]
 #[serde(crate = "rocket::serde")]
 pub struct Todo {
     pub id: Id,
@@ -11,9 +14,13 @@ pub struct Todo {
     pub done: bool,
 }
 
-impl Todo {
-    pub(crate) fn new(id: Id, content: String, done: bool) -> Todo {
-        Todo { id, content, done }
+impl<'r> FromRow<'r, PgRow> for Todo {
+    fn from_row(row: &'r PgRow) -> Result<Self, Error> {
+        let id: i64 = row.try_get("id")?;
+        let content = row.try_get("content")?;
+        let done = row.try_get("done")?;
+
+        Ok(Todo{ id: id as usize, content, done })
     }
 }
 

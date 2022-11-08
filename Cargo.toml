@@ -9,6 +9,10 @@ edition = "2021"
 rocket = { version = "0.5.0-rc.2", features = ["secrets", "tls", "json"] }
 serde_json = "1.0"
 refinery = { version = "0.8", features = ["tokio-postgres"]}
+prometheus = "0.13.3"
+prometheus_exporter = "0.8.5"
+lazy_static = "1.4.0"
+rocket_healthz = "0.2.0"
 
 [dependencies.rocket_db_pools]
 version = "0.1.0-rc.2"
